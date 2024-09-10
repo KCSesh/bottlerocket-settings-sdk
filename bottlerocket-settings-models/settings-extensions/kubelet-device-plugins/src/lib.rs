@@ -42,7 +42,9 @@ impl SettingsModel for KubeletDevicePluginsV1 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use bottlerocket_modeled_types::{NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy};
+    use bottlerocket_modeled_types::{
+        NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy,
+    };
 
     #[test]
     fn test_generate_kubelet_device_plugins() {
@@ -55,7 +57,7 @@ mod test {
 
     #[test]
     fn test_serde_kubelet_device_plugins() {
-        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts"}}"#;
+        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts","device-sharing-strategy":"time-slicing"}}"#;
 
         let device_plugins: KubeletDevicePluginsV1 = serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -65,6 +67,7 @@ mod test {
                     pass_device_specs: Some(true),
                     device_id_strategy: Some(NvidiaDeviceIdStrategy::Index),
                     device_list_strategy: Some(NvidiaDeviceListStrategy::VolumeMounts),
+                    device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::TimeSlicing),
                 }),
             }
         );

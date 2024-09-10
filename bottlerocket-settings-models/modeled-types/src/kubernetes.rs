@@ -1452,6 +1452,7 @@ pub struct NvidiaDevicePluginSettings {
     pass_device_specs: bool,
     device_id_strategy: NvidiaDeviceIdStrategy,
     device_list_strategy: NvidiaDeviceListStrategy,
+    device_sharing_strategy: NvidiaDeviceSharingStrategy,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -1468,13 +1469,22 @@ pub enum NvidiaDeviceListStrategy {
     VolumeMounts,
 }
 
+// Sharing vs Partitioning
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum NvidiaDeviceSharingStrategy {
+    None,
+    TimeSlicing,
+    Mps,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_serde_nvidia_device_plugins() {
-        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar"}"#;
+        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":"none"}"#;
         let nvidia_device_plugins: NvidiaDevicePluginSettings =
             serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -1483,6 +1493,7 @@ mod tests {
                 pass_device_specs: Some(false),
                 device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
                 device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+                device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::None),
             }
         );
 
