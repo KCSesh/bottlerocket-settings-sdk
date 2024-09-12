@@ -1469,13 +1469,31 @@ pub enum NvidiaDeviceListStrategy {
     VolumeMounts,
 }
 
-// Sharing vs Partitioning
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[model(impl_default = true)]
+pub struct NvidiaDeviceSharingStrategy {
+    strategy: Strategy,
+    time_slicing: TimeSlicingSettings,
+    mps: MpsSettings,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum NvidiaDeviceSharingStrategy {
-    None,
+pub enum Strategy {
     TimeSlicing,
     Mps,
+}
+
+#[model(impl_default = true)]
+pub struct TimeSlicingSettings {
+    rename_by_default: bool,
+    replicas: u32,
+}
+
+#[model(impl_default = true)]
+pub struct MpsSettings {
+    rename_by_default: bool,
+    replicas: u32,
+    new_value: bool,
 }
 
 #[cfg(test)]
@@ -1484,7 +1502,7 @@ mod tests {
 
     #[test]
     fn test_serde_nvidia_device_plugins() {
-        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":"none"}"#;
+        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar"}"#;
         let nvidia_device_plugins: NvidiaDevicePluginSettings =
             serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -1493,11 +1511,27 @@ mod tests {
                 pass_device_specs: Some(false),
                 device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
                 device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
-                device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::None),
+                device_sharing_strategy: None,
             }
         );
 
         let results = serde_json::to_string(&nvidia_device_plugins).unwrap();
         assert_eq!(results, test_json);
+
+        // let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":{"strategy":"none"}}"#;
+        // let nvidia_device_plugins: NvidiaDevicePluginSettings =
+        //     serde_json::from_str(test_json).unwrap();
+        // assert_eq!(
+        //     nvidia_device_plugins,
+        //     NvidiaDevicePluginSettings {
+        //         pass_device_specs: Some(false),
+        //         device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
+        //         device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+        //         device_sharing_strategy: None,
+        //     }
+        // );
+
+        // let results = serde_json::to_string(&nvidia_device_plugins).unwrap();
+        // assert_eq!(results, test_json);
     }
 }
