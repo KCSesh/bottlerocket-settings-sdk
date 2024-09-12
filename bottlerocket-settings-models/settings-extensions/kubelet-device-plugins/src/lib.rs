@@ -44,6 +44,7 @@ mod test {
     use super::*;
     use bottlerocket_modeled_types::{
         NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy,
+        TimeSlicingSettings,
     };
 
     #[test]
@@ -57,7 +58,7 @@ mod test {
 
     #[test]
     fn test_serde_kubelet_device_plugins() {
-        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts","device-sharing-strategy":"time-slicing"}}"#;
+        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts","device-sharing-strategy":{"strategy":"time-slicing","rename-by-default":true,"replicas":1}}}"#;
 
         let device_plugins: KubeletDevicePluginsV1 = serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -67,7 +68,12 @@ mod test {
                     pass_device_specs: Some(true),
                     device_id_strategy: Some(NvidiaDeviceIdStrategy::Index),
                     device_list_strategy: Some(NvidiaDeviceListStrategy::VolumeMounts),
-                    device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::TimeSlicing),
+                    device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::TimeSlicing(
+                        TimeSlicingSettings {
+                            rename_by_default: true,
+                            replicas: 1,
+                        }
+                    )),
                 }),
             }
         );
