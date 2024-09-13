@@ -43,8 +43,8 @@ impl SettingsModel for KubeletDevicePluginsV1 {
 mod test {
     use super::*;
     use bottlerocket_modeled_types::{
-        NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy, Strategy,
-        TimeSlicingSettings,
+        NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy,
+        SharingStrategy, TimeSlicingSettings,
     };
 
     #[test]
@@ -69,7 +69,7 @@ mod test {
                     device_id_strategy: Some(NvidiaDeviceIdStrategy::Index),
                     device_list_strategy: Some(NvidiaDeviceListStrategy::VolumeMounts),
                     device_sharing_strategy: Some(NvidiaDeviceSharingStrategy {
-                        strategy: Some(Strategy::TimeSlicing),
+                        strategy: Some(SharingStrategy::TimeSlicing),
                         time_slicing: Some(TimeSlicingSettings {
                             replicas: Some(2),
                             rename_by_default: Some(true)

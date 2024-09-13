@@ -1471,14 +1471,14 @@ pub enum NvidiaDeviceListStrategy {
 
 #[model(impl_default = true)]
 pub struct NvidiaDeviceSharingStrategy {
-    strategy: Strategy,
+    strategy: SharingStrategy,
     time_slicing: TimeSlicingSettings,
     mps: MpsSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum Strategy {
+pub enum SharingStrategy {
     None,
     TimeSlicing,
     Mps,
@@ -1520,6 +1520,7 @@ mod tests {
         assert_eq!(results, test_json);
 
         let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":{"strategy":"none"}}"#;
+        //test
         let nvidia_device_plugins: NvidiaDevicePluginSettings =
             serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -1529,7 +1530,7 @@ mod tests {
                 device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
                 device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
                 device_sharing_strategy: Some(NvidiaDeviceSharingStrategy {
-                    strategy: Some(Strategy::None),
+                    strategy: Some(SharingStrategy::None),
                     time_slicing: None,
                     mps: None
                 }),
