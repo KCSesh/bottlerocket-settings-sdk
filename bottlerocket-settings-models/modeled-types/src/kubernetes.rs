@@ -1520,6 +1520,7 @@ mod tests {
         assert_eq!(results, test_json);
 
         let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":{"strategy":"none"}}"#;
+        //test
         let nvidia_device_plugins: NvidiaDevicePluginSettings =
             serde_json::from_str(test_json).unwrap();
         assert_eq!(
