@@ -42,7 +42,10 @@ impl SettingsModel for KubeletDevicePluginsV1 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use bottlerocket_modeled_types::{NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy};
+    use bottlerocket_modeled_types::{
+        NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy,
+        PositiveInteger, SharingStrategy, TimeSlicingSettings,
+    };
 
     #[test]
     fn test_generate_kubelet_device_plugins() {
@@ -55,7 +58,7 @@ mod test {
 
     #[test]
     fn test_serde_kubelet_device_plugins() {
-        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts"}}"#;
+        let test_json = r#"{"nvidia":{"pass-device-specs":true,"device-id-strategy":"index","device-list-strategy":"volume-mounts","device-sharing-strategy":{"strategy":"time-slicing","time-slicing":{"rename-by-default":true,"replicas":2,"fail-requests-greater-than-one":false}}}}"#;
 
         let device_plugins: KubeletDevicePluginsV1 = serde_json::from_str(test_json).unwrap();
         assert_eq!(
@@ -65,6 +68,15 @@ mod test {
                     pass_device_specs: Some(true),
                     device_id_strategy: Some(NvidiaDeviceIdStrategy::Index),
                     device_list_strategy: Some(NvidiaDeviceListStrategy::VolumeMounts),
+                    device_sharing_strategy: Some(NvidiaDeviceSharingStrategy {
+                        strategy: Some(SharingStrategy::TimeSlicing),
+                        time_slicing: Some(TimeSlicingSettings {
+                            replicas: Some(PositiveInteger::try_from(2).unwrap()),
+                            rename_by_default: Some(true),
+                            fail_requests_greater_than_one: Some(false)
+                        }),
+                        mps: None,
+                    }),
                 }),
             }
         );

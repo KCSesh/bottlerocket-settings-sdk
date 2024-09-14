@@ -14,6 +14,7 @@ use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 use std::net::IpAddr;
 
+use crate::PositiveInteger;
 use crate::SingleLineString;
 
 // Declare constant values usable by any type
@@ -1452,6 +1453,7 @@ pub struct NvidiaDevicePluginSettings {
     pass_device_specs: bool,
     device_id_strategy: NvidiaDeviceIdStrategy,
     device_list_strategy: NvidiaDeviceListStrategy,
+    device_sharing_strategy: NvidiaDeviceSharingStrategy,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -1466,6 +1468,35 @@ pub enum NvidiaDeviceIdStrategy {
 pub enum NvidiaDeviceListStrategy {
     Envvar,
     VolumeMounts,
+}
+
+#[model(impl_default = true)]
+pub struct NvidiaDeviceSharingStrategy {
+    strategy: SharingStrategy,
+    time_slicing: TimeSlicingSettings,
+    mps: MpsSettings,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SharingStrategy {
+    None,
+    TimeSlicing,
+    Mps,
+}
+
+#[model(impl_default = true)]
+pub struct TimeSlicingSettings {
+    rename_by_default: bool,
+    replicas: PositiveInteger,
+    fail_requests_greater_than_one: bool,
+}
+
+#[model(impl_default = true)]
+pub struct MpsSettings {
+    rename_by_default: bool,
+    replicas: PositiveInteger,
+    new_value: bool,
 }
 
 #[cfg(test)]
@@ -1483,6 +1514,27 @@ mod tests {
                 pass_device_specs: Some(false),
                 device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
                 device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+                device_sharing_strategy: None,
+            }
+        );
+
+        let results = serde_json::to_string(&nvidia_device_plugins).unwrap();
+        assert_eq!(results, test_json);
+
+        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":{"strategy":"none"}}"#;
+        let nvidia_device_plugins: NvidiaDevicePluginSettings =
+            serde_json::from_str(test_json).unwrap();
+        assert_eq!(
+            nvidia_device_plugins,
+            NvidiaDevicePluginSettings {
+                pass_device_specs: Some(false),
+                device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
+                device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+                device_sharing_strategy: Some(NvidiaDeviceSharingStrategy {
+                    strategy: Some(SharingStrategy::None),
+                    time_slicing: None,
+                    mps: None
+                }),
             }
         );
 
