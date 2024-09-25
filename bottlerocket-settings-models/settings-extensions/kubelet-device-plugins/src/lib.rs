@@ -44,8 +44,9 @@ mod test {
     use super::*;
     use bottlerocket_modeled_types::{
         NvidiaDeviceIdStrategy, NvidiaDeviceListStrategy, NvidiaDeviceSharingStrategy,
-        NvidiaTimeSlicingSettings, PositiveInteger,
+        NvidiaTimeSlicingSettings,
     };
+    use bounded_integer::BoundedI32;
 
     #[test]
     fn test_generate_kubelet_device_plugins() {
@@ -70,7 +71,7 @@ mod test {
                     device_list_strategy: Some(NvidiaDeviceListStrategy::VolumeMounts),
                     device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::TimeSlicing),
                     time_slicing: Some(NvidiaTimeSlicingSettings {
-                        replicas: Some(PositiveInteger::try_from(2).unwrap()),
+                        replicas: Some(BoundedI32::new(2).unwrap()),
                         rename_by_default: Some(true),
                         fail_requests_greater_than_one: Some(true),
                     }),

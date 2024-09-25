@@ -1,6 +1,7 @@
 use super::error;
 use bottlerocket_scalar_derive::Scalar;
 use bottlerocket_string_impls_for::string_impls_for;
+use bounded_integer::BoundedI32;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -14,7 +15,6 @@ use std::convert::TryFrom;
 use std::fmt::{self, Display, Formatter};
 use std::net::IpAddr;
 
-use crate::PositiveInteger;
 use crate::SingleLineString;
 
 // Declare constant values usable by any type
@@ -1479,9 +1479,13 @@ pub enum NvidiaDeviceSharingStrategy {
     Mps,
 }
 
+// Define the bounds for the `replicas` field
+const MIN_REPLICAS: i32 = 2;
+const MAX_REPLICAS: i32 = i32::MAX;
+
 #[model(impl_default = true)]
 pub struct NvidiaTimeSlicingSettings {
-    replicas: PositiveInteger,
+    replicas: BoundedI32<MIN_REPLICAS, MAX_REPLICAS>,
     rename_by_default: bool,
     fail_requests_greater_than_one: bool,
 }
