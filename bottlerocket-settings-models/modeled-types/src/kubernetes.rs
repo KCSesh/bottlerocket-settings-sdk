@@ -1,6 +1,7 @@
 use super::error;
 use bottlerocket_scalar_derive::Scalar;
 use bottlerocket_string_impls_for::string_impls_for;
+use bounded_integer::BoundedI32;
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -1452,6 +1453,8 @@ pub struct NvidiaDevicePluginSettings {
     pass_device_specs: bool,
     device_id_strategy: NvidiaDeviceIdStrategy,
     device_list_strategy: NvidiaDeviceListStrategy,
+    device_sharing_strategy: NvidiaDeviceSharingStrategy,
+    time_slicing: NvidiaTimeSlicingSettings,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -1466,6 +1469,25 @@ pub enum NvidiaDeviceIdStrategy {
 pub enum NvidiaDeviceListStrategy {
     Envvar,
     VolumeMounts,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum NvidiaDeviceSharingStrategy {
+    None,
+    TimeSlicing,
+    Mps,
+}
+
+// Define the bounds for the `replicas` field
+const MIN_REPLICAS: i32 = 2;
+const MAX_REPLICAS: i32 = i32::MAX;
+
+#[model(impl_default = true)]
+pub struct NvidiaTimeSlicingSettings {
+    replicas: BoundedI32<MIN_REPLICAS, MAX_REPLICAS>,
+    rename_by_default: bool,
+    fail_requests_greater_than_one: bool,
 }
 
 #[cfg(test)]
@@ -1483,6 +1505,25 @@ mod tests {
                 pass_device_specs: Some(false),
                 device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
                 device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+                device_sharing_strategy: None,
+                time_slicing: None
+            }
+        );
+
+        let results = serde_json::to_string(&nvidia_device_plugins).unwrap();
+        assert_eq!(results, test_json);
+
+        let test_json = r#"{"pass-device-specs":false,"device-id-strategy":"uuid","device-list-strategy":"envvar","device-sharing-strategy":"time-slicing"}"#;
+        let nvidia_device_plugins: NvidiaDevicePluginSettings =
+            serde_json::from_str(test_json).unwrap();
+        assert_eq!(
+            nvidia_device_plugins,
+            NvidiaDevicePluginSettings {
+                pass_device_specs: Some(false),
+                device_id_strategy: Some(NvidiaDeviceIdStrategy::Uuid),
+                device_list_strategy: Some(NvidiaDeviceListStrategy::Envvar),
+                device_sharing_strategy: Some(NvidiaDeviceSharingStrategy::TimeSlicing),
+                time_slicing: None
             }
         );
 
